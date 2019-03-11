@@ -1,0 +1,76 @@
+{
+  "name": "LangSuggest",
+  "lowCaseName": "langsuggest",
+  "description": "Suggest a frontend language on base of the browser accepted language",
+  "author": "Thomas Jakobi",
+  "version": "1.0.0",
+  "package": {
+    "elements": {
+      "plugins": [
+        {
+          "name": "LangSuggest",
+          "file": "langsuggest.plugin.php",
+          "events": [
+            "OnWebPagePrerender"
+          ]
+        }
+      ],
+      "chunks": [
+        {
+          "name": "tplLangSuggestModal",
+          "file": "modal.chunk.html"
+        }
+      ]
+    },
+    "systemSettings": [
+      {
+        "key": "debug",
+        "type": "combo-boolean",
+        "area": "system",
+        "value": "0"
+      },
+      {
+        "key": "tpl",
+        "area": "site",
+        "value": "tplLangSuggestModal"
+      },
+      {
+        "key": "cookie_name",
+        "area": "site",
+        "value": "LangSuggest"
+      },
+      {
+        "key": "cookie_expiration",
+        "area": "site",
+        "value": "365"
+      },
+      {
+        "key": "no_session",
+        "type": "combo-boolean",
+        "area": "site",
+        "value": "0"
+      },
+      {
+        "key": "display_count",
+        "area": "site",
+        "value": "3"
+      }
+    ]
+  },
+  "build": {
+    "readme": "docs/readme.md",
+    "license": "docs/license.md",
+    "changelog": "docs/changelog.md",
+    "options": {
+      "modx_version": "2.6"
+    },
+    "setupOptions": {
+      "source": "setup.options.php"
+    },
+    "resolver": {
+      "after": [
+        "resolve.treehillstudio.php"
+      ]
+    }
+  }
+}
