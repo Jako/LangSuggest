@@ -92,10 +92,10 @@ class LangSuggest
 
         // Add default options
         $this->options = array_merge($this->options, array(
+            'debug' => (bool)$this->getOption('debug', $options, false),
             'cacheKey' => $this->namespace . '.contextmap',
             'cookie_expiration' => (int)$this->getOption('cookie_expiration', null),
             'cookie_name' => $this->getOption('cookie_name', null),
-            'debug' => (bool)$this->getOption('debug', null),
             'display_count' => (int)$this->getOption('display_count', null),
             'tpl' => $this->getOption('tpl', null),
         ));
@@ -171,10 +171,14 @@ class LangSuggest
             if (count($lang_parse[1])) {
                 $langs = array_combine($lang_parse[1], $lang_parse[4]);
 
-                // set default to 1 for any without q factor
+                // set default to 1 (or decremented by 0.01) for any language without q factor
+                $q = 1;
                 foreach ($langs as $lang => $val) {
                     if ($val === '') {
-                        $langs[$lang] = 1;
+                        $langs[$lang] = $q;
+                        $q = strval($q - 0.01);
+                    } else {
+                        $q = strval($val - 0.01);
                     }
                 }
                 arsort($langs, SORT_NUMERIC);
