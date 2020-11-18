@@ -4,6 +4,8 @@
  *
  * @package langsuggest
  * @subpackage build
+ *
+ * @var array $options
  */
 
 $output = '<style type="text/css">
