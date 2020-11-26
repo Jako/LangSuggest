@@ -17,12 +17,14 @@ $langsuggest = $modx->getService('langsuggest', 'LangSuggest', $corePath . 'mode
     'core_path' => $corePath
 ));
 
-$modx->loadClass('LangsuggestPlugin', $langsuggest->getOption('modelPath') . 'langsuggest/events/', true, true);
-$modx->loadClass($className, $langsuggest->getOption('modelPath') . 'langsuggest/events/', true, true);
-if (class_exists($className)) {
-    /** @var LangsuggestPlugin $handler */
-    $handler = new $className($modx, $scriptProperties);
-    $handler->run();
+if ($langsuggest) {
+    $modx->loadClass('LangsuggestPlugin', $langsuggest->getOption('modelPath') . 'langsuggest/events/', true, true);
+    $modx->loadClass($className, $langsuggest->getOption('modelPath') . 'langsuggest/events/', true, true);
+    if (class_exists($className)) {
+        /** @var LangsuggestPlugin $handler */
+        $handler = new $className($modx, $scriptProperties);
+        $handler->run();
+    }
 }
 
 return;
