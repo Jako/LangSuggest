@@ -3,13 +3,13 @@
  * LangSuggest Plugin
  *
  * @package langsuggest
- * @subpackage pluginfile
+ * @subpackage plugin
  *
  * @var modX $modx
  * @var array $scriptProperties
  */
 
-$className = 'LangSuggest' . $modx->event->name;
+$className = 'TreehillStudio\LangSuggest\Plugins\Events\\' . $modx->event->name;
 
 $corePath = $modx->getOption('langsuggest.core_path', null, $modx->getOption('core_path') . 'components/langsuggest/');
 /** @var LangSuggest $langsuggest */
@@ -18,12 +18,15 @@ $langsuggest = $modx->getService('langsuggest', 'LangSuggest', $corePath . 'mode
 ));
 
 if ($langsuggest) {
-    $modx->loadClass('LangsuggestPlugin', $langsuggest->getOption('modelPath') . 'langsuggest/events/', true, true);
-    $modx->loadClass($className, $langsuggest->getOption('modelPath') . 'langsuggest/events/', true, true);
     if (class_exists($className)) {
-        /** @var LangsuggestPlugin $handler */
         $handler = new $className($modx, $scriptProperties);
-        $handler->run();
+        if (get_class($handler) == $className) {
+            $handler->run();
+        } else {
+            $modx->log(xPDO::LOG_LEVEL_ERROR, $className. ' could not be initialized!', '', 'LangSuggest Plugin');
+        }
+    } else {
+        $modx->log(xPDO::LOG_LEVEL_ERROR, $className. ' was not found!', '', 'LangSuggest Plugin');
     }
 }
 

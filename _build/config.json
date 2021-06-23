@@ -1,9 +1,9 @@
 {
   "name": "LangSuggest",
   "lowCaseName": "langsuggest",
-  "description": "Suggest a frontend language on base of the browser accepted language",
+  "description": "Language Suggest for MODX",
   "author": "Thomas Jakobi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "package": {
     "elements": {
       "plugins": [
@@ -16,6 +16,10 @@
         }
       ],
       "chunks": [
+        {
+          "name": "tplLangSuggestBar",
+          "file": "bar.chunk.html"
+        },
         {
           "name": "tplLangSuggestModal",
           "file": "modal.chunk.html"
@@ -54,17 +58,22 @@
         "key": "display_count",
         "area": "site",
         "value": "3"
+      },
+      {
+        "key": "chunk_position",
+        "area": "site",
+        "value": "bottom"
       }
     ]
   },
   "dependencies": [
     {
       "name": "php",
-      "version": ">=5.6"
+      "version": ">=7.3"
     },
     {
       "name": "modx",
-      "version": ">=2.6"
+      "version": ">=2.7"
     }
   ],
   "build": {

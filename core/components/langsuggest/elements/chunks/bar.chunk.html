@@ -1,0 +1,38 @@
+<div aria-labelledby="langsuggestTitle" class="modal fade" id="langsuggestModal" role="dialog" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="langsuggestTitle">
+                    [[%langsuggest.redirect_title?
+                    &namespace=`langsuggest`
+                    &language=`[[+cultureKey]]`
+                    ]]
+                </h4>
+            </div>
+            <div class="modal-body">
+                [[%langsuggest.redirect_message?
+                &url=`[[~[[+redirect_id]]]]`
+                &namespace=`langsuggest`
+                &language=`[[+cultureKey]]`
+                ]]
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-primary btn-redirect" href="[[~[[+redirect_id]]]]" type="button">[[%yes? &language=`[[+cultureKey]]`]]</a>
+                <button class="btn btn-default" data-dismiss="modal" type="button">[[%no? &language=`[[+cultureKey]]`]]</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        var langSuggestModal = $('#langsuggestModal');
+        langSuggestModal.modal('show');
+        langSuggestModal.on('click', '.btn-redirect', function () {
+            $.cookie('[[+cookie_name]]', 1, {
+                expires: [[+cookie_expiration]]
+            });
+        });
+    });
+</script>

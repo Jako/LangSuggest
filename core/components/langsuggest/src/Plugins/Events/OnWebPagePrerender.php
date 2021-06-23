@@ -1,12 +1,18 @@
 <?php
-
 /**
  * @package langsuggest
  * @subpackage plugin
  */
-class LangsuggestOnWebPagePrerender extends LangsuggestPlugin
+
+namespace TreehillStudio\LangSuggest\Plugins\Events;
+
+use modX;
+use TreehillStudio\LangSuggest\Plugins\Plugin;
+use xPDO;
+
+class OnWebPagePrerender extends Plugin
 {
-    public function run()
+    public function process()
     {
         $cookieName = $this->langsuggest->getOption('cookie_name');
         $activeSession = in_array($this->modx->getSessionState(), array(

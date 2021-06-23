@@ -5,6 +5,8 @@
  * @package langsuggest
  * @subpackage lexicon
  */
+$_lang['setting_langsuggest.chunk_position'] = 'Chunk Position';
+$_lang['setting_langsuggest.chunk_position_desc'] = 'The position of the LangSuggest chunk output in the body section of the rendered page. Could be set to \'top\' and \'bottom\'.';
 $_lang['setting_langsuggest.cookie_expiration'] = 'Cookie Expiration';
 $_lang['setting_langsuggest.cookie_expiration_desc'] = 'The number of days the LangSuggest won\'t be visible, if it is closed by the button';
 $_lang['setting_langsuggest.cookie_name'] = 'Cookie Name';
