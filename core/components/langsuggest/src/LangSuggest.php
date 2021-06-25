@@ -2,7 +2,7 @@
 /**
  * LangSuggest classfile
  *
- * Copyright 2019 by Thomas Jakobi <thomas.jakobi@partout.info>
+ * Copyright 2019-2021 by Thomas Jakobi <thomas.jakobi@partout.info>
  *
  * @package langsuggest
  * @subpackage classfile
@@ -40,7 +40,7 @@ class LangSuggest
      * The version
      * @var string $version
      */
-    public $version = '1.0.0';
+    public $version = '1.1.0';
 
     /**
      * The class options
@@ -283,13 +283,13 @@ class LangSuggest
                             $match[0] = str_replace('>', ' class="langsuggestActive">', $match[0]);
                         }
                         return $match[0] . "\n" . $chunk;
-                    }, $output);
+                    }, $output, 1);
 
                 } else {
                     // Emulate regClient for the chunk code
                     $output = preg_replace_callback('#</body>#', function ($match) use ($chunk) {
                         return $chunk . "\n" . $match[0];
-                    }, $output);
+                    }, $output, 1);
                 }
             } else {
                 $this->modx->log(xPDO::LOG_LEVEL_ERROR, 'Preferred context was not found.', '', 'LangSuggest');

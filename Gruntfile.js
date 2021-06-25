@@ -7,11 +7,14 @@ module.exports = function (grunt) {
                 files: [{
                     src: 'core/components/langsuggest/model/langsuggest/langsuggest.class.php',
                     dest: 'core/components/langsuggest/model/langsuggest/langsuggest.class.php'
+                }, {
+                    src: 'core/components/langsuggest/src/LangSuggest.php',
+                    dest: 'core/components/langsuggest/src/LangSuggest.php'
                 }],
                 options: {
                     replacements: [{
-                        pattern: /Copyright 2015(-\d{4})? by/g,
-                        replacement: 'Copyright ' + (new Date().getFullYear() > 2015 ? '2015-' : '') + new Date().getFullYear() + ' by'
+                        pattern: /Copyright 2019(-\d{4})? by/g,
+                        replacement: 'Copyright ' + (new Date().getFullYear() > 2019 ? '2019-' : '') + new Date().getFullYear() + ' by'
                     }]
                 }
             },
@@ -19,6 +22,9 @@ module.exports = function (grunt) {
                 files: [{
                     src: 'core/components/langsuggest/model/langsuggest/langsuggest.class.php',
                     dest: 'core/components/langsuggest/model/langsuggest/langsuggest.class.php'
+                }, {
+                    src: 'core/components/langsuggest/src/LangSuggest.php',
+                    dest: 'core/components/langsuggest/src/LangSuggest.php'
                 }],
                 options: {
                     replacements: [{

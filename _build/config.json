@@ -3,7 +3,7 @@
   "lowCaseName": "langsuggest",
   "description": "Language Suggest for MODX",
   "author": "Thomas Jakobi",
-  "version": "1.1.0-rc1",
+  "version": "1.1.0",
   "package": {
     "elements": {
       "plugins": [
