@@ -1,38 +1,45 @@
-<div aria-labelledby="langsuggestTitle" class="modal fade" id="langsuggestModal" role="dialog" tabindex="-1">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
-                    <span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="langsuggestTitle">
-                    [[%langsuggest.redirect_title?
+<div class="langSelector bg-dark" id="langsuggestBar">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <p>
+                    [[%langsuggest.bar_message?
                     &namespace=`langsuggest`
                     &language=`[[+cultureKey]]`
                     ]]
-                </h4>
+                </p>
             </div>
-            <div class="modal-body">
-                [[%langsuggest.redirect_message?
-                &url=`[[~[[+redirect_id]]]]`
-                &namespace=`langsuggest`
-                &language=`[[+cultureKey]]`
-                ]]
-            </div>
-            <div class="modal-footer">
-                <a class="btn btn-primary btn-redirect" href="[[~[[+redirect_id]]]]" type="button">[[%yes? &language=`[[+cultureKey]]`]]</a>
-                <button class="btn btn-default" data-dismiss="modal" type="button">[[%no? &language=`[[+cultureKey]]`]]</button>
+            <div class="col-md-5">
+                <form>
+                    <div class="row">
+                        <div class="col-xs-7">
+                            <select class="select-redirect" class="form-control" size="1">
+                                [[BabelLinks?
+                                &tpl=`tplLangSuggestBarOption`
+                                &showCurrent=`1`
+                                &resourceId=`[[++site_start]]`
+                                ]]
+                            </select>
+                        </div>
+                        <div class="col-xs-4">
+                            <button class="btn btn-primary btn-block" id="send3" type="submit">[[%next? &language=`[[+cultureKey]]`]]</button>
+                        </div>
+                        <div class="col-xs-1">
+                            <a class="close-x" href="#">×</a>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 <script>
-    $(document).ready(function () {
-        var langSuggestModal = $('#langsuggestModal');
-        langSuggestModal.modal('show');
-        langSuggestModal.on('click', '.btn-redirect', function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        $('#langsuggestBar').on('change', '.select-redirect', function () {
             $.cookie('[[+cookie_name]]', 1, {
                 expires: [[+cookie_expiration]]
             });
+            window.location.href = $(this).val();
         });
     });
 </script>

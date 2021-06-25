@@ -105,10 +105,10 @@ class LangSuggest
         $this->options = array_merge($this->options, [
             'debug' => (bool)$this->modx->getOption($this->namespace . '.debug', null, '0') == 1,
             'cacheKey' => $this->namespace . '.contextmap',
-            'cookie_expiration' => (int)$this->modx->getOption($this->namespace . 'cookie_expiration', null, '365'),
-            'cookie_name' => $this->modx->getOption($this->namespace . 'cookie_name', null, 'LangSuggest'),
-            'display_count' => (int)$this->modx->getOption($this->namespace . 'display_count', null, '3'),
-            'tpl' => $this->modx->getOption($this->namespace . 'tpl', null, 'tplLangSuggestModal'),
+            'cookie_expiration' => (int)$this->modx->getOption($this->namespace . '.cookie_expiration', null, '365'),
+            'cookie_name' => $this->modx->getOption($this->namespace . '.cookie_name', null, 'LangSuggest'),
+            'display_count' => (int)$this->modx->getOption($this->namespace . '.display_count', null, '3'),
+            'tpl' => $this->modx->getOption($this->namespace . '.tpl', null, 'tplLangSuggestModal'),
         ]);
 
         $lexicon = $this->modx->getService('lexicon', 'modLexicon');
@@ -277,6 +277,11 @@ class LangSuggest
                 if ($this->getOption('chunk_position') === 'top') {
                     // Emulate regClient for the javascript
                     $output = preg_replace_callback('#<body[^>]*>#', function ($match) use ($chunk) {
+                        if (strpos($match[0], 'class="') !== false) {
+                            $match[0] = str_replace('class="', 'class="langsuggestActive ', $match[0]);
+                        } else {
+                            $match[0] = str_replace('>', ' class="langsuggestActive">', $match[0]);
+                        }
                         return $match[0] . "\n" . $chunk;
                     }, $output);
 
@@ -299,9 +304,9 @@ class LangSuggest
      * @param $type
      * @param $source
      * @param null $properties
-     * @return bool
+     * @return string
      */
-    private function parseChunk($type, $source, $properties = null): bool
+    private function parseChunk($type, $source, $properties = null): string
     {
         $output = false;
 
@@ -369,9 +374,9 @@ class LangSuggest
      *
      * @param $tpl
      * @param null $properties
-     * @return bool
+     * @return string|bool
      */
-    public function getChunk($tpl, $properties = null): bool
+    public function getChunk($tpl, $properties = null)
     {
         $output = false;
         if (!empty($tpl)) {

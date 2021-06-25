@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- chunk_position system setting 
+- chunk_position system setting
+- tplLangSuggestBar and tplLangSuggestBarOption demo chunks
+- The body tag gets an langsuggestActive class, when a language is suggested
 
 ## [1.0.0] - 2019-03-11
 
