@@ -17,7 +17,7 @@ MODX Package Management
 
 ## Usage
 
-Install via package manager and use the snippets and the FormIt hooks.
+Install via package manager.
 
 ## License
 
