@@ -8,7 +8,7 @@ end of the html body tag), that could redirect the browser to the preferred
 language context, when the current context does not contain a browser accepted
 language.
 
-The content of the popup/bar and other settings cold be changed by the system
+The content of the popup/bar and other settings can be changed by the system
 settings in the langsuggest namespace.
 
 ## Installation
