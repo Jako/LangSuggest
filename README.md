@@ -19,6 +19,10 @@ MODX Package Management
 
 Install via package manager.
 
+## Documentation
+
+For more information please read the [documentation](https://jako.github.io/LangSuggest/).
+
 ## License
 
 The project is licensed under the [GPLv2 license](https://github.com/Jako/LangSuggest/blob/master/core/components/langsuggest/docs/license.md).
