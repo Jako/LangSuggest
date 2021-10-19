@@ -15,10 +15,6 @@ settings in the langsuggest namespace.
 
 MODX Package Management
 
-## Usage
-
-Install via package manager.
-
 ## Documentation
 
 For more information please read the [documentation](https://jako.github.io/LangSuggest/).
