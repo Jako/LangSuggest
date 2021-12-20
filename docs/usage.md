@@ -24,7 +24,7 @@ redirect_id | The id of the translated and Babel referenced resource with the fi
 
 ## System Settings
 
-The following MODX system settings are available:
+LangSuggest uses the following system settings in the namespace `langsuggest`:
 
 Key | Description
 ----|------------
