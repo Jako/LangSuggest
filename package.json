@@ -1,7 +1,7 @@
 {
   "name": "langsuggest",
   "description": "Language Suggest for Babel",
-  "author": "Thomas Jakobi <thomas.jakobi@partout.info>",
+  "author": "Thomas Jakobi <office@treehillstudio.com>",
   "private": true,
   "devDependencies": {
     "gulp": "^4.0.2",

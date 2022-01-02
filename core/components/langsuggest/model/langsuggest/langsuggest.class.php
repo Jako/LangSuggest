@@ -1,8 +1,8 @@
 <?php
 /**
- * LangSuggest classfile
+ * LangSuggest
  *
- * Copyright 2019-2021 by Thomas Jakobi <thomas.jakobi@partout.info>
+ * Copyright 2019-2021 by Thomas Jakobi <office@treehillstudio.com>
  *
  * @package langsuggest
  * @subpackage classfile

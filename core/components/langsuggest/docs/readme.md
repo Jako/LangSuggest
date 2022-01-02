@@ -2,7 +2,7 @@
 
 Suggest a language context in the website frontend
 
-- Author: Thomas Jakobi <thomas.jakobi@partout.info>
+- Author: Thomas Jakobi <office@treehillstudio.com>
 - License: GNU GPLv2
 
 ## Features
