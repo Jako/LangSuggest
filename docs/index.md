@@ -9,7 +9,7 @@ language.
 ### Requirements
 
 * MODX Revolution 2.7+
-* PHP v7.3+
+* PHP 7.3+
 
 ### Features
 
