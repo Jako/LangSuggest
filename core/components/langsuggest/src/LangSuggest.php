@@ -145,7 +145,7 @@ class LangSuggest
      * @param array $contexts
      * @return array
      */
-    public function contextmap($contexts): array
+    public function contextmap($contexts)
     {
         $contextmap = array();
         foreach ($contexts as $context) {
@@ -171,7 +171,7 @@ class LangSuggest
      *
      * @return array
      */
-    public function clientLangDetect(): array
+    public function clientLangDetect()
     {
         $langs = array();
 
@@ -204,7 +204,7 @@ class LangSuggest
      * @param array $contextmap
      * @return string
      */
-    public function contextKeyDetect($contextmap): string
+    public function contextKeyDetect($contextmap)
     {
         $clientLangs = array_flip($this->clientLangDetect());
 
@@ -306,7 +306,7 @@ class LangSuggest
      * @param null $properties
      * @return string
      */
-    private function parseChunk($type, $source, $properties = null): string
+    private function parseChunk($type, $source, $properties = null)
     {
         $output = false;
 
