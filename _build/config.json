@@ -9,6 +9,7 @@
       "plugins": [
         {
           "name": "LangSuggest",
+          "description": "Language Suggest for MODX",
           "file": "langsuggest.plugin.php",
           "events": [
             "OnWebPagePrerender"
