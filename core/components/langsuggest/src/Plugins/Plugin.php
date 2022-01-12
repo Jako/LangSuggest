@@ -32,7 +32,7 @@ abstract class Plugin
     public function __construct($modx, &$scriptProperties)
     {
         $this->scriptProperties = &$scriptProperties;
-        $this->modx = &$modx;
+        $this->modx =& $modx;
         $corePath = $this->modx->getOption('langsuggest.core_path', null, $this->modx->getOption('core_path') . 'components/langsuggest/');
         $this->langsuggest = $this->modx->getService('langsuggest', 'LangSuggest', $corePath . 'model/langsuggest/', [
             'core_path' => $corePath
