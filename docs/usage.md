@@ -31,7 +31,7 @@ Key | Description
 Chunk Position | The position of the LangSuggest chunk output in the body section of the rendered page. Could be set to 'top' and 'bottom'.
 Cookie Expiration | The number of days the LangSuggest won't be visible, if it is closed by the button.
 Cookie Name | The name of the cookie that is set by LangSuggest, when the language should be switched.
-Debug | Log debug informations in MODX error log.
+Debug | Log debug information in MODX error log.
 Display Count | Maximum display count of LangSuggest modal for each session, if a PHP session exist.
 Modal Template | The template chunk containing the LangSuggest modal.
 Sesssion-less Contexts | Show LangSuggest on session-less contexts.
