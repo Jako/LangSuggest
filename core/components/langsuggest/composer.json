@@ -9,6 +9,14 @@
     }
   ],
   "license": "GPL-2.0-or-later",
+  "config": {
+    "platform": {
+      "php": "7.3.0"
+    }
+  },
+  "require": {
+    "php": ">=7.3"
+  },
   "autoload": {
     "psr-4": {
       "TreehillStudio\\LangSuggest\\": "src/"
