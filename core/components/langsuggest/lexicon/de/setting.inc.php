@@ -5,7 +5,7 @@
  * @package langsuggest
  * @subpackage lexicon
  */
-$_lang['setting_langsuggest.chunk_position_desc'] = 'Die Position der Ausgabe des LangSuggest-Chunks im Body-Bereich der gerenderten Seite. Kann auf \'top\' und \'bottom\' gesetzt werden.';
+$_lang['setting_langsuggest.chunk_position_desc'] = 'Die Position der Ausgabe des LangSuggest-Chunks im Body-Bereich der gerenderten Seite. Kann auf `top` und `bottom` gesetzt werden.';
 $_lang['setting_langsuggest.chunk_position'] = 'Chunk-Position';
 $_lang['setting_langsuggest.cookie_expiration'] = 'Cookie-Ablauf';
 $_lang['setting_langsuggest.cookie_expiration_desc'] = 'Die Anzahl der Tage, die der LangSuggest nicht sichtbar ist, wenn er durch die Schaltfläche geschlossen wird.';
