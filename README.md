@@ -1,4 +1,4 @@
-[![Default Lexicon](https://hosted.weblate.org/widgets/modx-extras/langsuggest/standard/svg-badge.svg)](https://hosted.weblate.org/projects/modx-extras/langsuggest/standard/)
+[![Default Lexicon](https://hosted.weblate.org/widget/modx-extras/langsuggest/standard/svg-badge.svg)](https://hosted.weblate.org/projects/modx-extras/langsuggest/standard/)
 
 # LangSuggest
 
