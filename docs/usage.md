@@ -3,7 +3,7 @@ the html body section. The position and the content of this html code can be cha
 
 The rendered output can look like this:
 
-[![](img/langsuggest-popup.jpg)](img/langsuggest-popup.jpg)
+![LangSuggest Popup](img/langsuggest-popup.jpg)
 
 ## Chunks and placeholder
 
@@ -14,24 +14,24 @@ Two sample chunks are available that can be duplicated, renamed, and referenced 
 
 Both chunks use the following placeholder:
 
-Key | Description
-----|------------
-cookie_expiration | The expiration of the cookie that will hide the modal after a selected display count.
-cookie_name | The name of the cookie that will hide the modal after a selected display count.
-cultureKey | The culture key of the first available browser accepted language.
-current_id | The id of the current resource.
-redirect_id | The id of the translated and Babel referenced resource with the first available browser accepted language.
+| Key               | Description                                                                                                |
+|-------------------|------------------------------------------------------------------------------------------------------------|
+| cookie_expiration | The expiration of the cookie that will hide the modal after a selected display count.                      |
+| cookie_name       | The name of the cookie that will hide the modal after a selected display count.                            |
+| cultureKey        | The culture key of the first available browser accepted language.                                          |
+| current_id        | The id of the current resource.                                                                            |
+| redirect_id       | The id of the translated and Babel referenced resource with the first available browser accepted language. |
 
 ## System Settings
 
 LangSuggest uses the following system settings in the namespace `langsuggest`:
 
-Key | Description
-----|------------
-Chunk Position | The position of the LangSuggest chunk output in the body section of the rendered page. Could be set to 'top' and 'bottom'.
-Cookie Expiration | The number of days the LangSuggest won't be visible, if it is closed by the button.
-Cookie Name | The name of the cookie that is set by LangSuggest, when the language should be switched.
-Debug | Log debug information in MODX error log.
-Display Count | Maximum display count of LangSuggest modal for each session, if a PHP session exist.
-Modal Template | The template chunk containing the LangSuggest modal.
-Sesssion-less Contexts | Show LangSuggest on session-less contexts.
+| Key                    | Description                                                                                                                |
+|------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| Chunk Position         | The position of the LangSuggest chunk output in the body section of the rendered page. Could be set to 'top' and 'bottom'. |
+| Cookie Expiration      | The number of days the LangSuggest won't be visible, if it is closed by the button.                                        |
+| Cookie Name            | The name of the cookie that is set by LangSuggest, when the language should be switched.                                   |
+| Debug                  | Log debug information in MODX error log.                                                                                   |
+| Display Count          | Maximum display count of LangSuggest modal for each session, if a PHP session exist.                                       |
+| Modal Template         | The template chunk containing the LangSuggest modal.                                                                       |
+| Sesssion-less Contexts | Show LangSuggest on session-less contexts.                                                                                 |
