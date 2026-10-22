@@ -1,10 +1,19 @@
 {
+  "name": "LangSuggest",
   "name": "langsuggest",
   "description": "Language Suggest for Babel",
   "author": "Thomas Jakobi <office@treehillstudio.com>",
   "private": true,
-  "devDependencies": {
-    "gulp": "^5.0.1",
-    "gulp-replace": "^1.1.4"
-  }
+  "version": "1.1.0",
+  "phpversion": "7.3",
+  "modxversion": "2.7",
+  "startYear": "2019",
+  "scripts": {
+    "build": "node build.js",
+    "build:bump": "node build.js bump"
+  },
+  "browserslist": [
+    "> 1%",
+    "defaults"
+  ]
 }

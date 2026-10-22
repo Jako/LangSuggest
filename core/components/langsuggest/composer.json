@@ -1,6 +1,7 @@
 {
   "name": "treehillstudio/langsuggest",
   "description": "Language Suggest for MODX",
+  "version": "1.1.0",
   "authors": [
     {
       "name": "Thomas Jakobi",
