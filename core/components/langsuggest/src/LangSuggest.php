@@ -2,7 +2,7 @@
 /**
  * LangSuggest classfile
  *
- * Copyright 2019-2021 by Thomas Jakobi <office@treehillstudio.com>
+ * Copyright 2019-2026 by Thomas Jakobi <office@treehillstudio.com>
  *
  * @package langsuggest
  * @subpackage classfile
@@ -10,6 +10,7 @@
 
 namespace TreehillStudio\LangSuggest;
 
+use modContext;
 use modX;
 use xPDO;
 
@@ -18,6 +19,11 @@ use xPDO;
  */
 class LangSuggest
 {
+    /**
+     * The class added to the body tag, when LangSuggest is shown
+     */
+    const BODY_CLASS = 'langsuggestActive';
+
     /**
      * A reference to the modX instance
      * @var modX $modx
@@ -40,7 +46,7 @@ class LangSuggest
      * The version
      * @var string $version
      */
-    public $version = '1.1.0';
+    public $version = '1.1.1';
 
     /**
      * The class options
@@ -52,17 +58,20 @@ class LangSuggest
      * Template cache
      * @var array $_tplCache
      */
-    private $_tplCache;
+    private $_tplCache = [
+        '@CHUNK' => [],
+        '@FILE' => [],
+    ];
 
     /**
      * Valid binding types
      * @var array $_validTypes
      */
-    private $_validTypes = array(
+    private $_validTypes = [
         '@CHUNK',
         '@FILE',
         '@INLINE'
-    );
+    ];
 
     /**
      * LangSuggest constructor
@@ -102,12 +111,14 @@ class LangSuggest
 
         // Add default options
         $this->options = array_merge($this->options, [
-            'debug' => (bool)$this->modx->getOption($this->namespace . '.debug', null, '0') == 1,
+            'debug' => (bool)$this->modx->getOption($this->namespace . '.debug', null, false),
             'cacheKey' => $this->namespace . '.contextmap',
-            'cookie_expiration' => (int)$this->modx->getOption($this->namespace . '.cookie_expiration', null, '365'),
-            'cookie_name' => $this->modx->getOption($this->namespace . '.cookie_name', null, 'LangSuggest'),
-            'display_count' => (int)$this->modx->getOption($this->namespace . '.display_count', null, '3'),
-            'tpl' => $this->modx->getOption($this->namespace . '.tpl', null, 'tplLangSuggestModal'),
+            'chunk_position' => $this->modx->getOption($this->namespace . '.chunk_position', null, 'bottom', true),
+            'cookie_expiration' => (int)$this->modx->getOption($this->namespace . '.cookie_expiration', null, 365),
+            'cookie_name' => $this->sanitizeCookieName($this->modx->getOption($this->namespace . '.cookie_name', null, 'LangSuggest', true)),
+            'display_count' => (int)$this->modx->getOption($this->namespace . '.display_count', null, 3),
+            'no_session' => (bool)$this->modx->getOption($this->namespace . '.no_session', null, false),
+            'tpl' => $this->modx->getOption($this->namespace . '.tpl', null, 'tplLangSuggestModal', true),
         ]);
 
         $lexicon = $this->modx->getService('lexicon', 'modLexicon');
@@ -126,8 +137,8 @@ class LangSuggest
     public function getOption(string $key, $options = [], $default = null)
     {
         $option = $default;
-        if (!empty($key) && is_string($key)) {
-            if ($options != null && array_key_exists($key, $options)) {
+        if (!empty($key)) {
+            if (is_array($options) && array_key_exists($key, $options)) {
                 $option = $options[$key];
             } elseif (array_key_exists($key, $this->options)) {
                 $option = $this->options[$key];
@@ -139,27 +150,64 @@ class LangSuggest
     }
 
     /**
+     * Restrict a cookie name to characters, that PHP and the browsers handle the same way.
+     * PHP converts dots and spaces in cookie names to underscores, other characters are invalid.
+     *
+     * @param string $name
+     * @return string
+     */
+    private function sanitizeCookieName($name): string
+    {
+        return preg_replace('/[^A-Za-z0-9_-]/', '_', trim((string)$name)) ?: 'LangSuggest';
+    }
+
+    /**
      * Get contexts and their cultureKeys
      *
      * @param array $contexts
-     * @return array
+     * @return array cultureKey => context key
      */
-    public function contextmap($contexts)
+    public function contextmap($contexts): array
     {
-        $contextmap = array();
+        $contextmap = [];
         foreach ($contexts as $context) {
-            $ctx = $this->modx->getContext($context);
-            if (isset($ctx->config['cultureKey'])) {
-                $contextmap[$ctx->config['cultureKey']] = trim($context);
-            } else {
-                $this->modx->log(xpdo::LOG_LEVEL_ERROR, 'No cultureKey exists in the "' . $context . '" context!', '', 'LangSuggest');
+            $context = trim($context);
+            if ($context === '') {
+                continue;
             }
-            if (isset($ctx->config['cultureKeyAliases'])) {
-                $cultureKeyAliases = explode(',', $ctx->config['cultureKeyAliases']);
-                foreach ($cultureKeyAliases as $cultureKeyAlias) {
-                    $contextmap[$cultureKeyAlias] = trim($context);
+            $ctx = $this->modx->getContext($context);
+            if (!$ctx) {
+                $this->logError('The "' . $context . '" context does not exist!');
+                continue;
+            }
+            if (!empty($ctx->config['cultureKey'])) {
+                $contextmap[trim($ctx->config['cultureKey'])] = $context;
+            } else {
+                $this->logError('No cultureKey exists in the "' . $context . '" context!');
+            }
+            if (!empty($ctx->config['cultureKeyAliases'])) {
+                foreach ($this->splitList($ctx->config['cultureKeyAliases'], ',') as $cultureKeyAlias) {
+                    $contextmap[$cultureKeyAlias] = $context;
                 }
             }
+        }
+        return $contextmap;
+    }
+
+    /**
+     * Get the cached context map of the Babel contexts
+     *
+     * @return array cultureKey => context key
+     */
+    public function getContextmap(): array
+    {
+        $cacheKey = $this->getOption('cacheKey');
+        $contextmap = $this->modx->cacheManager->get($cacheKey);
+        if (empty($contextmap)) {
+            // Babel context groups are separated by semicolons, contexts by commas
+            $babelContexts = $this->splitList($this->modx->getOption('babel.contextKeys', null, 'web'), ',;');
+            $contextmap = $this->contextmap($babelContexts);
+            $this->modx->cacheManager->set($cacheKey, $contextmap);
         }
         return $contextmap;
     }
@@ -168,131 +216,258 @@ class LangSuggest
      * Detects client language preferences and returns associative array sorted
      * by importance (q factor)
      *
-     * @return array
+     * @return array language => q factor
      */
-    public function clientLangDetect()
+    public function clientLangDetect(): array
     {
-        $langs = array();
+        return $this->parseAcceptLanguage($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '');
+    }
 
-        if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-            // break up string into pieces (languages and q factors)
-            preg_match_all('/([a-z]{1,8}(-[a-z]{1,8})?)\s*(;\s*q\s*=\s*(1|0\.[0-9]+))?/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $lang_parse);
+    /**
+     * Parse an Accept-Language header
+     *
+     * @param string $header
+     * @return array Lowercase language => q factor, sorted by q factor and header order
+     */
+    public function parseAcceptLanguage(string $header): array
+    {
+        preg_match_all('/([a-z]{1,8}(?:-[a-z0-9]{1,8})*)\s*(?:;\s*q\s*=\s*([01](?:\.[0-9]{0,3})?))?/i', $header, $matches);
 
-            if (count($lang_parse[1])) {
-                $langs = array_combine($lang_parse[1], $lang_parse[4]);
+        $langs = [];
+        $positions = [];
+        foreach ($matches[1] as $i => $lang) {
+            // A language without q factor has the q factor 1 (RFC 9110)
+            $q = ($matches[2][$i] === '') ? 1.0 : (float)$matches[2][$i];
 
-                // set default to 1 (or decremented by 0.01) for any language without q factor
-                $q = 1;
-                foreach ($langs as $lang => $val) {
-                    if ($val === '') {
-                        $langs[$lang] = $q;
-                        $q = strval($q - 0.01);
-                    } else {
-                        $q = strval($val - 0.01);
-                    }
-                }
-                arsort($langs, SORT_NUMERIC);
+            // q=0 means "not acceptable"
+            if ($q <= 0) {
+                continue;
+            }
+            $lang = strtolower($lang);
+            if (!isset($langs[$lang])) {
+                $positions[$lang] = $i;
+                $langs[$lang] = $q;
+            } elseif ($langs[$lang] < $q) {
+                $langs[$lang] = $q;
             }
         }
+
+        // Sort by q factor, keep the header order for equal q factors
+        uksort($langs, function ($a, $b) use ($langs, $positions) {
+            return ($langs[$b] <=> $langs[$a]) ?: ($positions[$a] <=> $positions[$b]);
+        });
+
         return $langs;
     }
 
     /**
      * Detect a context key
      *
-     * @param array $contextmap
+     * @param array $contextmap cultureKey => context key
      * @return string
      */
-    public function contextKeyDetect($contextmap)
+    public function contextKeyDetect($contextmap): string
     {
-        $clientLangs = array_flip($this->clientLangDetect());
+        // Client languages sorted by q factor (highest first)
+        $clientLangs = array_keys($this->clientLangDetect());
 
-        $clientCultureKeys = array();
-        foreach ($contextmap as $k => $v) {
-            $context = preg_split('/[-_]/', $k);
-            $matches = preg_grep('/^' . $context[0] . '/', $clientLangs);
-            if (count($matches) > 0) {
-                // Get the q factor of the current clientLang
-                $clientCultureKeys[$k] = floatval(key($matches));
+        $cultureKeys = [];
+        foreach ($contextmap as $cultureKey => $contextKey) {
+            $cultureKeys[$this->normalizeLanguage($cultureKey)] = $contextKey;
+        }
+
+        foreach ($clientLangs as $clientLang) {
+            // Exact match i.e. pt-br => pt-br
+            if (isset($cultureKeys[$clientLang])) {
+                return $cultureKeys[$clientLang];
+            }
+
+            // Base language match i.e. pt-br => pt-pt
+            $base = $this->baseLanguage($clientLang);
+            $candidates = array_filter($cultureKeys, function ($cultureKey) use ($base) {
+                return $this->baseLanguage($cultureKey) === $base;
+            }, ARRAY_FILTER_USE_KEY);
+            if ($candidates) {
+                // Prefer a candidate the client requests explicitly with a lower q factor
+                foreach ($clientLangs as $otherLang) {
+                    if (isset($candidates[$otherLang])) {
+                        return $candidates[$otherLang];
+                    }
+                }
+                // Then the plain base language, then the first candidate
+                return $candidates[$base] ?? reset($candidates);
             }
         }
-        arsort($clientCultureKeys, SORT_NUMERIC);
 
-        if (count($clientCultureKeys)) {
-            $cultureKey = key($clientCultureKeys);
-            $contextKey = $contextmap[$cultureKey];
-        } else {
-            $contextKey = trim($this->modx->getOption('babel.contextDefault', null, 'web'));
-        }
-        return $contextKey;
+        return trim($this->modx->getOption('babel.contextDefault', null, 'web'));
     }
 
     /**
-     * Appends the processed cookie consent chunk to the generated resource output BODY tag
+     * Normalize a language tag/culture key (lowercase, hyphen separated)
+     *
+     * @param string $language
+     * @return string
      */
-    public function showLangSuggest()
+    private function normalizeLanguage($language): string
     {
-        // Get contexts and their cultureKeys
-        $cacheKey = $this->namespace . '.contextmap';
-        $contextmap = $this->modx->cacheManager->get($cacheKey);
-        if (empty($contextmap)) {
-            $babelContexts = explode(',', $this->modx->getOption('babel.contextKeys', null, 'en'));
-            $contextmap = $this->contextmap($babelContexts);
-            $this->modx->cacheManager->set($cacheKey, $contextmap);
+        return strtolower(str_replace('_', '-', trim((string)$language)));
+    }
+
+    /**
+     * Get the base language of a normalized language tag i.e. pt-br => pt
+     *
+     * @param string $language
+     * @return string
+     */
+    private function baseLanguage(string $language): string
+    {
+        return explode('-', $language)[0];
+    }
+
+    /**
+     * Adds the processed LangSuggest chunk to the generated resource output BODY tag
+     *
+     * @return bool True, if the LangSuggest chunk was added to the output
+     */
+    public function showLangSuggest(): bool
+    {
+        $preferredContextKey = $this->contextKeyDetect($this->getContextmap());
+        if ($preferredContextKey === $this->modx->context->get('key')) {
+            return false;
         }
 
-        $preferredContextKey = $this->contextKeyDetect($contextmap);
+        $preferredContext = $this->modx->getContext($preferredContextKey);
+        if (!$preferredContext) {
+            $this->logError('Preferred context was not found.');
+            return false;
+        }
 
-        if ($preferredContextKey !== $this->modx->context->get('key')) {
-            $tpl = $this->getOption('tpl');
-            $preferredContext = $this->modx->getContext($preferredContextKey);
+        $currentId = $this->modx->resource->get('id');
+        $placeholder = [
+            'cookie_name' => $this->getOption('cookie_name'),
+            'cookie_expiration' => $this->getOption('cookie_expiration'),
+            'current_id' => $currentId,
+            'redirect_id' => $this->getRedirectId($currentId, $preferredContext),
+            'debug' => (string)$this->getOption('debug'),
+            'cultureKey' => $preferredContext->getOption('cultureKey')
+        ];
 
-            if ($preferredContext) {
-                $currentId = $this->modx->resource->get('id');
-                if (!$foreignId = $this->modx->runSnippet('BabelTranslation', array(
-                    'resourceId' => $currentId,
-                    'contextKey' => $preferredContextKey
-                ))) {
-                    $foreignId = $preferredContext->getOption('site_start');
-                }
+        $tpl = $this->getOption('tpl');
+        $chunk = $this->getChunk($tpl, $placeholder);
+        if (empty($chunk)) {
+            $this->logError('The LangSuggest chunk "' . $tpl . '" is empty or was not found.');
+            return false;
+        }
 
-                $placeholder = array(
-                    'cookie_name' => $this->getOption('cookie_name'),
-                    'cookie_expiration' => $this->getOption('cookie_expiration'),
-                    'current_id' => $currentId,
-                    'redirect_id' => $foreignId,
-                    'debug' => strval($this->getOption('debug')),
-                    'cultureKey' => $preferredContext->getOption('cultureKey')
-                );
+        $shown = $this->insertChunk($this->modx->resource->_output, $chunk, $this->getOption('chunk_position'));
 
-                if ($this->getOption('debug')) {
-                    $this->modx->log(xPDO::LOG_LEVEL_ERROR, 'LangSuggest is shown.', '', 'LangSuggest');
-                    $this->modx->log(xPDO::LOG_LEVEL_ERROR, 'Placeholder: ' . print_r($placeholder, true), '', 'LangSuggest');
-                }
+        $this->logDebug('LangSuggest is ' . ($shown ? 'shown' : 'not shown (no body tag)') . '.');
+        $this->logDebug('Placeholder: ' . print_r($placeholder, true));
 
-                $chunk = $this->getChunk($tpl, $placeholder);
-                $output = &$this->modx->resource->_output;
+        return $shown;
+    }
 
-                if ($this->getOption('chunk_position') === 'top') {
-                    // Emulate regClient for the javascript
-                    $output = preg_replace_callback('#<body[^>]*>#', function ($match) use ($chunk) {
-                        if (strpos($match[0], 'class="') !== false) {
-                            $match[0] = str_replace('class="', 'class="langsuggestActive ', $match[0]);
-                        } else {
-                            $match[0] = str_replace('>', ' class="langsuggestActive">', $match[0]);
-                        }
-                        return $match[0] . "\n" . $chunk;
-                    }, $output, 1);
+    /**
+     * Get the id of the Babel translation of a resource or the site start of the context
+     *
+     * @param int $resourceId
+     * @param modContext $context
+     * @return int
+     */
+    private function getRedirectId($resourceId, modContext $context): int
+    {
+        $translationId = $this->modx->runSnippet('BabelTranslation', [
+            'resourceId' => $resourceId,
+            'contextKey' => $context->get('key')
+        ]);
+        return (int)($translationId ?: $context->getOption('site_start'));
+    }
 
-                } else {
-                    // Emulate regClient for the chunk code
-                    $output = preg_replace_callback('#</body>#', function ($match) use ($chunk) {
-                        return $chunk . "\n" . $match[0];
-                    }, $output, 1);
-                }
-            } else {
-                $this->modx->log(xPDO::LOG_LEVEL_ERROR, 'Preferred context was not found.', '', 'LangSuggest');
+    /**
+     * Insert the chunk after the opening (position top) or before the closing body tag
+     * and add the LangSuggest class to the body tag
+     *
+     * @param string $output The output is changed by reference
+     * @param string $chunk
+     * @param string $position top|bottom
+     * @return bool True, if the chunk was inserted
+     */
+    private function insertChunk(&$output, string $chunk, $position): bool
+    {
+        $count = 0;
+        if ($position === 'top') {
+            $output = preg_replace_callback('#<body\b[^>]*>#i', function ($match) use ($chunk) {
+                return $match[0] . "\n" . $chunk;
+            }, $output, 1, $count);
+        } else {
+            $output = preg_replace_callback('#</body\s*>#i', function ($match) use ($chunk) {
+                return $chunk . "\n" . $match[0];
+            }, $output, 1, $count);
+        }
+
+        if ($count === 0) {
+            return false;
+        }
+        $output = $this->addBodyClass($output, self::BODY_CLASS);
+        return true;
+    }
+
+    /**
+     * Add a class to the class attribute of the opening body tag
+     *
+     * @param string $output
+     * @param string $class
+     * @return string
+     */
+    private function addBodyClass(string $output, string $class): string
+    {
+        return preg_replace_callback('#<body\b[^>]*>#i', function ($match) use ($class) {
+            $tag = $match[0];
+            // Match a standalone class attribute (not i.e. data-class) with double, single or no quotes
+            $pattern = '#(\sclass\s*=\s*)(?:"([^"]*)"|\'([^\']*)\'|([^\s>"\']+))#i';
+            if (preg_match($pattern, $tag)) {
+                return preg_replace_callback($pattern, function ($attr) use ($class) {
+                    // Only one of the alternative groups is filled
+                    $classes = ($attr[2] ?? '') . ($attr[3] ?? '') . ($attr[4] ?? '');
+                    return $attr[1] . '"' . trim($class . ' ' . $classes) . '"';
+                }, $tag, 1);
             }
+            return preg_replace('#\s*/?>$#', ' class="' . $class . '">', $tag, 1);
+        }, $output, 1);
+    }
+
+    /**
+     * Split a list by the separator characters, trim the items and remove empty and duplicate items
+     *
+     * @param string $list
+     * @param string $separators
+     * @return array
+     */
+    private function splitList($list, string $separators): array
+    {
+        $items = preg_split('/[' . preg_quote($separators, '/') . ']/', (string)$list);
+        return array_values(array_unique(array_filter(array_map('trim', $items), 'strlen')));
+    }
+
+    /**
+     * Log an error message
+     *
+     * @param string $message
+     */
+    private function logError(string $message)
+    {
+        $this->modx->log(xPDO::LOG_LEVEL_ERROR, $message, '', $this->packageName);
+    }
+
+    /**
+     * Log a debug message, if the debug system setting is enabled
+     *
+     * @param string $message
+     */
+    public function logDebug(string $message)
+    {
+        if ($this->getOption('debug')) {
+            $this->logError($message);
         }
     }
 
@@ -300,103 +475,76 @@ class LangSuggest
      * Parse a chunk (with template bindings)
      * Modified parseTplElement method from getResources package (https://github.com/opengeek/getResources)
      *
-     * @param $type
-     * @param $source
-     * @param null $properties
-     * @return string
+     * @param string $type
+     * @param string $source
+     * @param array|null $properties
+     * @return string|bool
      */
     private function parseChunk($type, $source, $properties = null)
     {
-        $output = false;
-
         if (!is_string($type) || !in_array($type, $this->_validTypes)) {
             $type = $this->modx->getOption('tplType', $properties, '@CHUNK');
         }
 
-        $content = false;
         switch ($type) {
             case '@FILE':
                 $path = $this->modx->getOption('tplPath', $properties, $this->modx->getOption('assets_path', $properties, MODX_ASSETS_PATH) . 'elements/chunks/');
                 $key = $path . $source;
-                if (!isset($this->_tplCache['@FILE'])) {
-                    $this->_tplCache['@FILE'] = array();
-                }
                 if (!array_key_exists($key, $this->_tplCache['@FILE'])) {
-                    if (file_exists($key)) {
-                        $content = file_get_contents($key);
-                    }
-                    $this->_tplCache['@FILE'][$key] = $content;
-                } else {
-                    $content = $this->_tplCache['@FILE'][$key];
+                    $this->_tplCache['@FILE'][$key] = file_exists($key) ? file_get_contents($key) : false;
                 }
-                if (!empty($content) && $content !== '0') {
-                    $chunk = $this->modx->newObject('modChunk', array('name' => $key));
-                    $chunk->setCacheable(false);
-                    $output = $chunk->process($properties, $content);
+                $content = $this->_tplCache['@FILE'][$key];
+                if (empty($content)) {
+                    return false;
                 }
-                break;
-            case '@INLINE':
-                $uniqid = uniqid();
-                $chunk = $this->modx->newObject('modChunk', array('name' => "$type-$uniqid"));
+                $chunk = $this->modx->newObject('modChunk', ['name' => $key]);
                 $chunk->setCacheable(false);
-                $output = $chunk->process($properties, $source);
-                break;
+                return $chunk->process($properties, $content);
+            case '@INLINE':
+                $chunk = $this->modx->newObject('modChunk', ['name' => $type . '-' . uniqid()]);
+                $chunk->setCacheable(false);
+                return $chunk->process($properties, $source);
             case '@CHUNK':
             default:
                 $chunk = null;
-                if (!isset($this->_tplCache['@CHUNK'])) {
-                    $this->_tplCache['@CHUNK'] = array();
-                }
                 if (!array_key_exists($source, $this->_tplCache['@CHUNK'])) {
-                    $chunk = $this->modx->getObject('modChunk', array('name' => $source));
-                    if ($chunk) {
-                        $this->_tplCache['@CHUNK'][$source] = $chunk->toArray('', true);
-                    } else {
-                        $this->_tplCache['@CHUNK'][$source] = false;
-                    }
+                    $chunk = $this->modx->getObject('modChunk', ['name' => $source]);
+                    $this->_tplCache['@CHUNK'][$source] = $chunk ? $chunk->toArray('', true) : false;
                 } elseif (is_array($this->_tplCache['@CHUNK'][$source])) {
                     $chunk = $this->modx->newObject('modChunk');
                     $chunk->fromArray($this->_tplCache['@CHUNK'][$source], '', true, true, true);
                 }
-                if (is_object($chunk)) {
-                    $chunk->setCacheable(false);
-                    $output = $chunk->process($properties);
+                if (!is_object($chunk)) {
+                    return false;
                 }
-                break;
+                $chunk->setCacheable(false);
+                return $chunk->process($properties);
         }
-        return $output;
     }
 
     /**
      * Get and parse a chunk (with template bindings)
      * Modified parseTpl method from getResources package (https://github.com/opengeek/getResources)
      *
-     * @param $tpl
-     * @param null $properties
+     * @param string $tpl
+     * @param array|null $properties
      * @return string|bool
      */
     public function getChunk($tpl, $properties = null)
     {
-        $output = false;
-        if (!empty($tpl)) {
-            $bound = array(
-                'type' => '@CHUNK',
-                'value' => $tpl
-            );
-            if (strpos($tpl, '@') === 0) {
-                $endPos = strpos($tpl, ' ');
-                if ($endPos > 2 && $endPos < 10) {
-                    $tt = substr($tpl, 0, $endPos);
-                    if (in_array($tt, $this->_validTypes)) {
-                        $bound['type'] = $tt;
-                        $bound['value'] = substr($tpl, $endPos + 1);
-                    }
-                }
-            }
-            if (is_array($bound) && isset($bound['type']) && isset($bound['value'])) {
-                $output = $this->parseChunk($bound['type'], $bound['value'], $properties);
+        if (empty($tpl)) {
+            return false;
+        }
+
+        $type = '@CHUNK';
+        $value = $tpl;
+        if (strpos($tpl, '@') === 0) {
+            $endPos = strpos($tpl, ' ');
+            if ($endPos > 2 && $endPos < 10 && in_array(substr($tpl, 0, $endPos), $this->_validTypes)) {
+                $type = substr($tpl, 0, $endPos);
+                $value = substr($tpl, $endPos + 1);
             }
         }
-        return $output;
+        return $this->parseChunk($type, $value, $properties);
     }
 }

@@ -1,6 +1,6 @@
 [project]
 site_name = "LangSuggest"
-site_description = "Documentation for LangSuggest, the easy language routing plugin for MODX."
+site_description = "Documentation for LangSuggest, the language suggest plugin for MODX and Babel."
 site_author = "Treehill Studio"
 site_url = "https://jako.github.io/LangSuggest/"
 repo_url = "https://github.com/Jako/LangSuggest/"

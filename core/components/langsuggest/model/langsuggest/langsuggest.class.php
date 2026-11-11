@@ -2,7 +2,7 @@
 /**
  * LangSuggest
  *
- * Copyright 2019-2021 by Thomas Jakobi <office@treehillstudio.com>
+ * Copyright 2019-2026 by Thomas Jakobi <office@treehillstudio.com>
  *
  * @package langsuggest
  * @subpackage classfile

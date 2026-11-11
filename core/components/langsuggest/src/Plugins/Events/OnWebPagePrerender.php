@@ -8,35 +8,66 @@ namespace TreehillStudio\LangSuggest\Plugins\Events;
 
 use modX;
 use TreehillStudio\LangSuggest\Plugins\Plugin;
-use xPDO;
 
 class OnWebPagePrerender extends Plugin
 {
+    /**
+     * The cookie name, also used as session key for the display count
+     * @var string $cookieName
+     */
+    private $cookieName;
+
     public function process()
     {
-        $cookieName = $this->langsuggest->getOption('cookie_name');
-        $activeSession = in_array($this->modx->getSessionState(), array(
-            modX::SESSION_STATE_INITIALIZED, modX::SESSION_STATE_EXTERNAL
-        ), true);
+        $this->cookieName = $this->langsuggest->getOption('cookie_name');
 
         if ($this->modx->getOption('langsuggest_reset', $_REQUEST, false)) {
-            unset($_SESSION[$cookieName]);
-            unset($_COOKIE[$cookieName]);
-            setcookie($cookieName, '', time() - 3600);
+            $this->reset();
         }
 
-        if (!isset($_COOKIE[$cookieName])) {
-            if ($activeSession) {
-                $_SESSION[$cookieName] = $this->modx->getOption($cookieName, $_SESSION, intval($this->langsuggest->getOption('display_count')));
-                if ($_SESSION[$cookieName] > 0) {
-                    $this->langsuggest->showLangSuggest();
-                    $_SESSION[$cookieName]--;
-                }
-            } elseif ($this->langsuggest->getOption('no_session')) {
-                $this->langsuggest->showLangSuggest();
-            }
-        } elseif ($this->langsuggest->getOption('debug')) {
-            $this->modx->log(xPDO::LOG_LEVEL_ERROR, 'LangSuggest is hidden.', '', 'LangSuggest OnWebPagePrerender');
+        if (isset($_COOKIE[$this->cookieName])) {
+            $this->langsuggest->logDebug('LangSuggest is hidden by the cookie.');
+            return;
         }
+
+        if ($this->hasActiveSession()) {
+            $this->showWithDisplayCount();
+        } elseif ($this->langsuggest->getOption('no_session')) {
+            $this->langsuggest->showLangSuggest();
+        }
+    }
+
+    /**
+     * Show LangSuggest, until the display count of the session is reached
+     */
+    private function showWithDisplayCount()
+    {
+        $displayCount = (int)$this->modx->getOption($this->cookieName, $_SESSION, $this->langsuggest->getOption('display_count'));
+
+        // Decrease the display count only if the LangSuggest chunk was really shown
+        if ($displayCount > 0 && $this->langsuggest->showLangSuggest()) {
+            $displayCount--;
+        }
+        $_SESSION[$this->cookieName] = $displayCount;
+    }
+
+    /**
+     * Reset the display count and remove the cookie
+     */
+    private function reset()
+    {
+        unset($_SESSION[$this->cookieName], $_COOKIE[$this->cookieName]);
+        setcookie($this->cookieName, '', time() - 3600, '/');
+    }
+
+    /**
+     * @return bool
+     */
+    private function hasActiveSession(): bool
+    {
+        return in_array($this->modx->getSessionState(), [
+            modX::SESSION_STATE_INITIALIZED,
+            modX::SESSION_STATE_EXTERNAL
+        ], true);
     }
 }

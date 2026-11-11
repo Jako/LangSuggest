@@ -9,23 +9,23 @@
             <div class="col-md-5">
                 <div class="row">
                     <div class="col-xs-7">
-                        <select class="select-redirect" class="form-control" size="1">
+                        <select class="select-redirect form-control" size="1">
                             [[BabelLinks?
                             &tpl=`tplLangSuggestBarOption`
                             &showCurrent=`1`
-                            &resourceId=`[[++site_start]]`
+                            &resourceId=`[[+current_id]]`
                             &cultureKey=`[[+cultureKey]]`
                             &includeUnlinked=`1`
                             ]]
                         </select>
                     </div>
                     <div class="col-xs-4">
-                        <button class="btn btn-primary btn-block">
+                        <button class="btn btn-primary btn-block btn-redirect" type="button">
                             [[%continue? &namespace=`core` &topic=`workspace` &language=`[[+cultureKey]]`]]
                         </button>
                     </div>
                     <div class="col-xs-1">
-                        <a class="close-x" href="#">×</a>
+                        <a aria-label="Close" class="close-x" href="#" role="button">×</a>
                     </div>
                 </div>
             </div>
@@ -33,20 +33,38 @@
     </div>
 </div>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var langsuggestBar = $('#langsuggestBar');
-        langsuggestBar.on('click', 'button', function () {
-            var url = $('.select-redirect', langsuggestBar).val();
-            $.cookie('[[+cookie_name]]', 1, {
-                expires: [[+cookie_expiration]]
+    (function () {
+        var bar = document.getElementById('langsuggestBar');
+        if (!bar) {
+            return;
+        }
+        var select = bar.querySelector('.select-redirect');
+        var button = bar.querySelector('.btn-redirect');
+        var close = bar.querySelector('.close-x');
+        var cookieDays = parseInt('[[+cookie_expiration]]', 10) || 0;
+
+        function hideLangSuggest() {
+            // A cookie expiration of 0 days creates a session cookie
+            var maxAge = cookieDays > 0 ? '; max-age=' + (cookieDays * 86400) : '';
+            document.cookie = '[[+cookie_name]]=1' + maxAge + '; path=/; SameSite=Lax';
+        }
+
+        if (button && select) {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (select.value) {
+                    hideLangSuggest();
+                    window.location.replace(select.value);
+                }
             });
-            window.location.replace(url);
-            return false;
-        });
-        langsuggestBar.on('click', '.close-x', function () {
-            langsuggestBar.remove();
-            $('body').removeClass('langsuggestActive');
-            return false;
-        });
-    });
+        }
+
+        if (close) {
+            close.addEventListener('click', function (e) {
+                e.preventDefault();
+                bar.parentNode.removeChild(bar);
+                document.body.classList.remove('langsuggestActive');
+            });
+        }
+    })();
 </script>

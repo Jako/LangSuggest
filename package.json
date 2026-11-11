@@ -4,7 +4,7 @@
   "description": "Language Suggest for Babel",
   "author": "Thomas Jakobi <office@treehillstudio.com>",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "phpversion": "7.3",
   "modxversion": "2.7",
   "startYear": "2019",

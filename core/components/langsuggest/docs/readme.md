@@ -7,7 +7,7 @@ Suggest a language context in the website frontend
 
 ## Features
 
-LangSuggest is a language suggest plugin for MODx Revolution that is meant to be
+LangSuggest is a language suggest plugin for MODX Revolution that is meant to be
 used with Babel. It displays a popup (or something different at the start or the
 end of the html body tag), that could redirect the browser to the preferred
 language context, when the current context does not contain a browser accepted
